@@ -326,3 +326,70 @@ class Data:
         else:
             return encoded_y
 
+
+
+class Dataset:
+    """
+    Class to handle the dataset and obtain the data from the twitter API.
+
+    ...
+
+    Methods
+    -------
+    load: (path: str)
+        Loads an existing dataset saved in a csv.
+    add_list_user: (twitter_api: twitter object, users: list, labels: list, force: bool)
+        Add users from a list of screen_name (unique for Twitter) and, if needed, with the corresponding
+        label for each user.
+    add_user: (twitter_api: twitter object, users: list, labels: list, force: bool)
+        Add users from a list of screen_name (unique for Twitter) and, if needed, with the corresponding
+        label for each user.
+    get_training_data: (columns: list, test_size: int)
+        Returns a data object with the training and test data.
+    get_data: (columns: list)
+        Returns a np.array with the columns specified from the df.
+    save: (path: str)
+        Saves the dataframe into a csv file to be used latter. If the df was previously loaded,
+        it will save at the same path if not specified differently.
+    """
+
+    def __init__(self):
+        """
+        Class to handle the dataset and obtain the data from the twitter API.
+
+        """
+        self.df = pd.DataFrame()
+        self.path = None
+
+    def load(self, path):
+        """
+        Loads an existing dataset saved in a csv. It must be considered if it has the same columns as
+        the data that is going to be retrieved. Check the add_list_user or add_user documentation for
+        further information. The path is stored to be saved latter at the same location.
+
+        :param path: path to the csv file containing the data that it wants to be loaded. (str)
+        """
+
+        self.df = pd.read_csv(path, sep=';')
+        self.path = path
+
+    def clean_dataset(self, original=True, lang='es', stopwords=True):
+        """
+        Method to select specific tweets (original, language) and to clean the tweets (stopwords, lemma, stem)
+        :param original: if only wanted original tweets, no replies. (bool)
+        :param lang: if only wanted specific language. If not, set it to None. (str)
+        :param stopwords: if wanted to remove stopwords. (bool)
+        # TODO Add lemmatization and stemming.
+        """
+        if original:
+            if lang is not None:
+                self.df = self.df[(self.df['type<gx:category>'] == 'original') & (self.df['lang<gx:category>'] == lang)]
+            else:
+                self.df = self.df[(self.df['type<gx:category>'] == 'original')]
+        else:
+            if lang is not None:
+                self.df = self.df[(self.df['lang<gx:category>'] == lang)]
+
+        if stopwords:
+            self.df['type<gx:category>'] = self.df['type<gx:category>'].map(clean_tweet)
+
