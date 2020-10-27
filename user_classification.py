@@ -266,3 +266,20 @@ def save(self, name):
         self.encoder_classes = extras['encoder_classes']
 
 
+    def predict_user(self, twitter_api, user):
+        """
+        Method to obtain the prediction for a given user name (screen_name)
+        :param twitter_api: twitter api object already verified ready to be used. (twitter object)
+        :param user: user screen_name, example: @Basetis -> Basetis. (str)
+        :return: model prediction of user class. (str)
+        """
+
+        response = twitter_api.statuses.user_timeline(screen_name=user, tweet_mode='extended', count=10)
+
+        row = get_user_features(response)
+        x = np.array(row.values())
+
+        output = self.predict(x)
+
+        return output
+
