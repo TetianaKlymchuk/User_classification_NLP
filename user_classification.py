@@ -393,3 +393,55 @@ class Dataset:
         if stopwords:
             self.df['type<gx:category>'] = self.df['type<gx:category>'].map(clean_tweet)
 
+    def add_list_user(self, twitter_api, users, labels=None, force=False):
+        """
+        Add users from a list of screen_name (unique for Twitter) and, if needed, with the corresponding
+        label for each user.
+
+        :param twitter_api: twitter api object already verified ready to be used. (twitter object)
+        :param users: list of users screen_name. (list of str)
+        :param labels: list of labels for each user (same order). (list of str) (optional: default None)
+        :param force: whether it should care about the columns of the existing df. (default: False)
+
+        :raises Exception: if users and labels (lists) are not the same lengths.
+            TODO: modify exception to only except when problem with user name.
+            TODO: check why some users cause errors.
+        """
+
+        if len(users) != len(labels):
+            raise Exception('The length of users and labels do not match')
+
+        for user, label in zip(users, labels):
+            try:
+                self.add_user(twitter_api, user, label, force)
+            except:
+                print('Some problems with user: {}'.format(user))
+
+    def add_user(self, twitter_api, user, label=None, force=False):
+        """
+        Add users from a list of screen_name (unique for Twitter) and, if needed, with the corresponding
+        label for each user. If the current df has different columns from the features being extracted
+        an error will raise. To overcome it, set force to True. For example, you may want just to label
+        some of the rows and the column doesn't exist until the first labelled sample.
+
+        :param twitter_api: twitter api object already verified ready to be used. (twitter object)
+        :param user: list of users screen_name. (list of str)
+        :param label: list of labels for each user (same order). (list of str) (optional: default None)
+        :param force: whether it should care about the columns of the existing df. (default: False)
+        """
+        response = twitter_api.statuses.user_timeline(screen_name=user, tweet_mode='extended', count=10)
+
+        row = get_user_features(response)
+        row['user'] = user
+
+        if label is not None:
+            row['label'] = label
+
+        if set(row.keys()) != set(self.df.columns) and len(self.df) != 0 and not force:
+            print('The columns are not the same!')
+            print('New row columns: {}'.format(row.keys()))
+            print('Dataframe columns: {}'.format(self.df.columns))
+            raise Exception('If it is fine, try again setting the force argument to True')
+
+        self.df = self.df.append(row, ignore_index=True)
+
