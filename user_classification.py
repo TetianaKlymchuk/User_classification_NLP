@@ -141,3 +141,48 @@ class Model:
         if self.model_type == 'mlp_binary':
             self.model.fit(data.x_train, data.y_train, epochs=n_epochs, batch_size=2)
 
+    def evaluate(self, data):
+        """
+        Evaluates the model with the data object passed.
+        :param data: object containing training and test data. (data object)
+        :return: the evaluation scores # TODO: What are the evaluation scores?
+        """
+
+        if self.model_type == 'random_forest':
+            return self.model.score(data.x_test, data.y_test)
+        if self.model_type == 'mlp':
+            return self.model.evaluate(data.x_test, data.y_test, batch_size=2)
+        if self.model_type == 'mlp_binary':
+            return self.model.evaluate(data.x_test, data.y_test, batch_size=2)
+
+    def predict(self, x):
+        """
+        Predict the output of a model given an input
+
+        :param x: features from a new user or group of users. (np.array)
+        :return: model prediction for the given user.
+
+        """
+
+        if len(x.shape) == 1:
+            x = np.expand_dims(x, axis=0)
+
+        x = normalize_data(x)
+
+        output = None
+
+        if self.model_type == 'random_forest':
+            output = self.model.predict(x)
+        if self.model_type == 'mlp':
+            output = self.model.predict(x)
+        if self.model_type == 'mlp_binary':
+            output = self.model.predict(x)
+
+        if output is None:
+            raise Exception('Something went wrong, check predict method')
+
+        if self.encoder_classes is not None:
+            output = get_labels(output, self.encoder_classes, self.uniques)
+
+        return output
+
