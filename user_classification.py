@@ -186,3 +186,83 @@ class Model:
 
         return output
 
+   def test_set(self, dataset):
+        """
+        Method used to test the model on a test dataset.
+        :param dataset: labelled dataset with testing set. (dataset object)
+        :return: mean accuracy of the dataset.
+            # TODO: change the evaluation metric.
+        """
+
+        if 'label' not in dataset.df.columns:
+            raise Exception('It must be a labelled dataset')
+
+        columns = list(dataset.df.columns)
+        columns.remove('user')
+        columns.remove('label')
+
+        x = dataset.get_data(columns)
+        y = dataset.df.label
+
+        pred = self.predict(x)
+
+        total = len(y)
+        y = [x.lower() for x in y]
+        y = np.array(y)
+        accuracy = np.sum(pred == y) / total
+
+        print('\n Accuracy: {}'.format(accuracy))
+        return accuracy
+
+def save(self, name):
+        """
+        Saves the model to file for later use.
+        The path should be 'checkpoints/<model_type>/<model_name>'
+        :param name: name of the model to be saved with the proper extension. (str)
+            # TODO: automatically handle extension based on model_type.
+        """
+        self.path += name.split('.')[0]
+
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+        file_path = os.path.join(self.path, name)
+        if self.model_type in ['mlp', 'mlp_binary']:
+            self.model.save(file_path)
+        else:
+            with open(file_path, 'wb') as f:
+                pickle.dump(self.model, f)
+
+        extras_path = os.path.join(self.path, 'extras.pkl')
+        extra = {'encoder_classes': self.encoder_classes, 'uniques': self.uniques}
+        with open(extras_path, 'wb') as f:
+            pickle.dump(extra, f)
+
+    def load(self, name):
+        """
+        Loads a trained model for inference or further training.
+        The path should be 'checkpoints/<model_type>/<model_name>'
+        :param name: path and name of the model to load.
+        """
+        self.path += name.split('.')[0]
+
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+        file_path = os.path.join(self.path, name)
+        if not os.path.exists(file_path):
+            raise Exception('There is no model in the specified path.')
+
+        if self.model_type in ['mlp', 'mlp_binary']:
+            self.model = load_model(file_path)
+        else:
+            self.model = pickle.load(open(file_path, 'rb'))
+
+        extras_path = os.path.join(self.path, 'extras.pkl')
+        with open(extras_path, 'rb') as f:
+            extras = pickle.load(f)
+
+        self.uniques = extras['uniques']
+        self.encoder_classes = extras['encoder_classes']
+
+
