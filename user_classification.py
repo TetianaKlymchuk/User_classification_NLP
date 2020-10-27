@@ -186,3 +186,31 @@ class Model:
 
         return output
 
+   def test_set(self, dataset):
+        """
+        Method used to test the model on a test dataset.
+        :param dataset: labelled dataset with testing set. (dataset object)
+        :return: mean accuracy of the dataset.
+            # TODO: change the evaluation metric.
+        """
+
+        if 'label' not in dataset.df.columns:
+            raise Exception('It must be a labelled dataset')
+
+        columns = list(dataset.df.columns)
+        columns.remove('user')
+        columns.remove('label')
+
+        x = dataset.get_data(columns)
+        y = dataset.df.label
+
+        pred = self.predict(x)
+
+        total = len(y)
+        y = [x.lower() for x in y]
+        y = np.array(y)
+        accuracy = np.sum(pred == y) / total
+
+        print('\n Accuracy: {}'.format(accuracy))
+        return accuracy
+
