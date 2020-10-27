@@ -100,7 +100,7 @@ def compute_user_statistics(response):
     return row, time_stamp
 
 
-    def edit_distance(s1, s2):
+def edit_distance(s1, s2):
     """
     Implementation of Levenshtein distance (https://en.wikipedia.org/wiki/Levenshtein_distance)
     :param s1:
@@ -123,7 +123,7 @@ def compute_user_statistics(response):
     return distances[-1]
 
 
-    def get_time_difference(timestamp1, timestamp2, unit='years'):
+def get_time_difference(timestamp1, timestamp2, unit='years'):
     date1, time1 = get_time(timestamp1)
     date2, time2 = get_time(timestamp2)
 
@@ -155,3 +155,59 @@ def get_time(time):
     date = obj1.date()
 
     return date, time
+
+def get_collective_activeness(posted_tweets, following_count, listed_count, time_stamp):
+    # TODO: THE PAPER DESCRIBE THE ARGUMENTS IN A PERIOD OF TIME, CHECK IF POSSIBLE
+
+    # output = 0.5 * posted_tweets + 0.4 * listed_count + 0.1 * following_count
+    if time_stamp == 0:
+        output = np.sqrt(posted_tweets ** 2 + following_count ** 2) * listed_count
+    else:
+        output = np.sqrt(posted_tweets ** 2 + following_count ** 2) * listed_count / (time_stamp + 1)
+        # output = np.sqrt(posted_tweets ** 2 + following_count ** 2) * listed_count
+
+    return output
+
+
+def get_collective_influence(followers_count, listed_count, favourites_count):
+    return sum([followers_count, listed_count, favourites_count])
+
+
+def get_degree_inclination(personal_tweets, retweet_count):
+    return harmonic_mean([personal_tweets, retweet_count])
+
+
+def get_labels(output, encoder_classes, uniques):
+    """
+
+    :param output:
+    :param uniques:
+    :param encoder_classes:
+    :return:
+    """
+
+    encoder = LabelEncoder()
+    encoder.classes_ = encoder_classes
+
+    if uniques is not None:
+        output = uniques[output.argmax(1)]
+
+    if len(output.shape) == 1:
+        output = list(map(round, output))
+    else:
+        output = list(map(round, output[:, 0]))
+
+    return encoder.inverse_transform(output)
+
+
+def normalize_data(x):
+    """
+
+    :param x:
+    :return:
+    """
+    scaler = MinMaxScaler()
+    normalized = scaler.fit_transform(x)
+
+    return normalized
+
