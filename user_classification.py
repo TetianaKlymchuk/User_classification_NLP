@@ -445,3 +445,70 @@ class Dataset:
 
         self.df = self.df.append(row, ignore_index=True)
 
+    def get_training_data(self, columns=None, test_size=0.2, to_categorical=True):
+        """
+        Returns a data object with the training and test data.
+
+        :param columns: columns from the dataset to use as features. (list)
+                    if None, all the columns except label are selected (default: None)
+        :param test_size: percentage of samples for testing. (int from 0-1)
+        :param to_categorical: # TODO
+        :return: data object with the columns specified as x and the label column as l
+
+        :raises Exception: when the df doesn't has a label column.
+        """
+
+        if columns is None:
+            columns = list(self.df.columns)
+            columns.remove('user')
+            if 'label' in columns:
+                columns.remove('label')
+            else:
+                raise Exception('For training data there needs to be a label column.')
+
+        x = self.df[columns].to_numpy()
+        y = self.df.label.to_numpy()
+
+        if not to_categorical:
+            return Data(x, y, test_size=test_size, to_categorical=False)
+
+        return Data(x, y, test_size=test_size)
+
+    def get_data(self, columns=None):
+        """
+        Returns a np.array with the columns specified from the df.
+
+        :param columns: columns from the dataset to use as features. (list)
+                    if None, all the columns except label are selected (default: None)
+        :return: np.array of the specified columns from the df.
+        """
+
+        if columns is None:
+            columns = list(self.df.columns)
+            if 'label' in columns:
+                columns.remove('label')
+
+        x = self.df[columns].to_numpy()
+
+        return x
+
+    def save(self, path=None):
+        """
+        Saves the dataframe into a csv file to be used latter. If the df was previously loaded,
+        it will save at the same path if not specified differently.
+
+        :param path: path to save the dataframe. (str)
+                if None, the dataframe will be saved from it was loaded. (default: None)
+
+        :raises Exception: if None is passed as the path and the dataset was not loaded.
+        """
+
+        if path is None:
+            if self.path is None:
+                raise Exception("You didn't provided a path. Add the 'path' argument.")
+        else:
+            self.path = path
+
+        print('Saving dataset to ' + self.path)
+        self.df.to_csv(self.path, sep=';', index=False)
+
