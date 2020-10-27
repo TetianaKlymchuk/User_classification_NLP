@@ -121,3 +121,23 @@ class Model:
             raise Exception("Something went wrong, check the build method")
         self.model = model
 
+
+    def train(self, data, n_epochs=15):
+        """
+        Trains the model with the data object passed.
+
+        :param n_epochs: number of epochs to train the models (if needed).
+        :param data: object containing training and test data. (data object)
+        """
+
+        self.encoder_classes = data.encoder_classes
+        if data.uniques is not None:
+            self.uniques = data.uniques
+
+        if self.model_type == 'random_forest':
+            self.model.fit(data.x_train, data.y_train)
+        if self.model_type == 'mlp':
+            self.model.fit(data.x_train, data.y_train, epochs=n_epochs, batch_size=2)
+        if self.model_type == 'mlp_binary':
+            self.model.fit(data.x_train, data.y_train, epochs=n_epochs, batch_size=2)
+
