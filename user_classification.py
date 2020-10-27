@@ -283,3 +283,46 @@ def save(self, name):
 
         return output
 
+
+
+class Data:
+    """
+    Class to handle splitting, normalizing, encoding ... data to input to the models.
+    """
+
+    def __init__(self, x, y, test_size=0.2, to_categorical=True):
+        """
+        Class to handle splitting, normalizing, encoding ... data to input to the models.
+
+        :param x: users features (n_samples, n_features). (np.array)
+        :param y: possible labels (n_samples). (np.array)
+        :param test_size: percentage of samples for testing. (int from 0-1)
+        """
+
+        self.encoder_classes = None
+        self.uniques = None
+
+        x = normalize_data(x)
+        y = self.encode_labels(y, to_categorical=to_categorical)
+        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(x, y,
+                                                                                test_size=test_size,
+                                                                                random_state=42)
+
+    def encode_labels(self, y, to_categorical):
+        """
+        Encodes the classes from y and if to_categorical, creates one-hot encoding for the variables.
+        :param y: original labels, usually strings. (np.array)
+        :param to_categorical: whether to do one-hot encoding. (bool)
+        :return: encoded (or one-hot encoded) variables. (np.array)
+        """
+        encoder = LabelEncoder()
+        encoder.fit(y)
+        encoded_y = encoder.transform(y)
+        self.encoder_classes = encoder.classes_
+        if to_categorical:
+            uniques, ids = np.unique(encoded_y, return_inverse=True)
+            self.uniques = uniques
+            return np_utils.to_categorical(ids, len(uniques))
+        else:
+            return encoded_y
+
