@@ -121,3 +121,37 @@ def compute_user_statistics(response):
         distances = distances_
 
     return distances[-1]
+
+
+    def get_time_difference(timestamp1, timestamp2, unit='years'):
+    date1, time1 = get_time(timestamp1)
+    date2, time2 = get_time(timestamp2)
+
+    datetime1 = datetime.datetime.combine(date1, time1)
+
+    datetime2 = datetime.datetime.combine(date2, time2)
+
+    time_elapsed = datetime1 - datetime2
+
+    if time_elapsed.days < 0:
+        time_elapsed = datetime2 - datetime1
+
+    if unit == 'years':
+        return time_elapsed.days / 365.25
+    elif unit == 'days':
+        return time_elapsed.days
+    elif unit == 'hour':
+        return time_elapsed.seconds / 3600
+    elif unit == 'minute':
+        return time_elapsed.seconds / 60
+    else:
+        raise Exception('Check the implementation!')
+
+
+def get_time(time):
+    obj1 = datetime.datetime.strptime(time, "%a %b %d %H:%M:%S +0000 %Y")
+
+    time = obj1.time()
+    date = obj1.date()
+
+    return date, time
