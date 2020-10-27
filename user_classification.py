@@ -214,3 +214,55 @@ class Model:
         print('\n Accuracy: {}'.format(accuracy))
         return accuracy
 
+def save(self, name):
+        """
+        Saves the model to file for later use.
+        The path should be 'checkpoints/<model_type>/<model_name>'
+        :param name: name of the model to be saved with the proper extension. (str)
+            # TODO: automatically handle extension based on model_type.
+        """
+        self.path += name.split('.')[0]
+
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+        file_path = os.path.join(self.path, name)
+        if self.model_type in ['mlp', 'mlp_binary']:
+            self.model.save(file_path)
+        else:
+            with open(file_path, 'wb') as f:
+                pickle.dump(self.model, f)
+
+        extras_path = os.path.join(self.path, 'extras.pkl')
+        extra = {'encoder_classes': self.encoder_classes, 'uniques': self.uniques}
+        with open(extras_path, 'wb') as f:
+            pickle.dump(extra, f)
+
+    def load(self, name):
+        """
+        Loads a trained model for inference or further training.
+        The path should be 'checkpoints/<model_type>/<model_name>'
+        :param name: path and name of the model to load.
+        """
+        self.path += name.split('.')[0]
+
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+        file_path = os.path.join(self.path, name)
+        if not os.path.exists(file_path):
+            raise Exception('There is no model in the specified path.')
+
+        if self.model_type in ['mlp', 'mlp_binary']:
+            self.model = load_model(file_path)
+        else:
+            self.model = pickle.load(open(file_path, 'rb'))
+
+        extras_path = os.path.join(self.path, 'extras.pkl')
+        with open(extras_path, 'rb') as f:
+            extras = pickle.load(f)
+
+        self.uniques = extras['uniques']
+        self.encoder_classes = extras['encoder_classes']
+
+
